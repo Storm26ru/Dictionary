@@ -1,10 +1,11 @@
 package word;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-public class Word {
+public class Word implements Serializable {
     private String word;
     private Set<String> translations;
     private int count;
@@ -15,11 +16,30 @@ public class Word {
         this.translations = new HashSet<>(Arrays.asList(convertToArray(translations)));
         this.count = 0;
     }
-    private String [] convertToArray(String translations){
-            return translations.replaceAll("\\s+","").split(",");
+
+    public Set<String> getTranslations() {
+        return translations;
     }
 
-    public void addTranslation(String translations){
+    public int getCount() {
+        return count;
+    }
+
+    public String getWord() {
+        return word;
+    }
+
+    public void setWord(String word) {
+        ValidationUtils.checkNullOrEmpty(word,"Слово не может быть пустым или null");
+        this.word = word;
+    }
+
+    private String [] convertToArray(String translations){
+        return Arrays.stream(translations.replaceAll("\\s+","").split(","))
+                .filter(t-> !t.isEmpty()).toArray(String[]::new);
+    }
+
+    public void addTranslations(String translations){
        ValidationUtils.checkNullOrEmpty(translations,"Перевод не может быть пустым или null");
        this.translations.addAll(Arrays.asList(convertToArray(translations)));
     }
