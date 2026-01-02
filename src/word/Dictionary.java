@@ -5,16 +5,26 @@ import java.util.*;
 
 public class Dictionary {
     private Map<String, Word> dictionary;
-    private  String filename;
+    private  String filename ;
 
     public Dictionary() {
        this.dictionary = new HashMap<>();
+       this.filename = null;
     }
     public Dictionary(String filename){
         ValidationUtils.checkNullOrEmpty(filename,"Имя файла не может быть пустым или null");
         this.filename = filename+".map";
-        dictionary = loadDictionaryFromFile();
+        this.dictionary = loadDictionaryFromFile();
     }
+
+    public String getFilename() {
+        return filename;
+    }
+
+    public void setFilename(String filename) {
+        this.filename = filename;
+    }
+
     private Map<String,Word> loadDictionaryFromFile(){
         if(!new File(this.filename).exists()) return new HashMap<>();
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(this.filename))){
@@ -31,30 +41,50 @@ public class Dictionary {
         }
         return new HashMap<>();
     }
-    private void saveToFile(String filename){
-
+    public boolean save(){
+       // if(this.filename==null) throw new IllegalStateException("Не задано имя файла");
+        if(this.filename==null) return false;
+        saveToFile(this.filename);
+        return true;
     }
-
-
-    public void addWordToDictionary(String word, String translations){
+    public boolean saveAs(String filename){
+        ValidationUtils.checkNullOrEmpty(filename,"Имя файла не может быть пустым или null");
+        if(dictionary==null) return false;
+        return saveToFile(filename);
+    }
+    private boolean saveToFile(String path){
+        try(ObjectOutputStream oop = new ObjectOutputStream(new FileOutputStream(path))){
+            oop.writeObject(this.dictionary);
+            setFilename(path+".map");
+            return true;
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+        return false;
+    }
+    public boolean addWordToDictionary(String word, String translations){
         ValidationUtils.checkNullOrEmpty(word,"Слово не может быть пустым или null");
         ValidationUtils.checkNullOrEmpty(translations,"Перевод не может быть пустым или null");
         if(!dictionary.containsKey(word)){
             dictionary.put(word, new Word(word,translations));
+            return true;
         }else System.out.println("Слово - "+word+" уже есть в словаре.");
+        return false;
     }
-    public void removeWord(String word){
+    public boolean removeWord(String word){
         ValidationUtils.checkNullOrEmpty(word,"Слово не может быть пустым или null");
-        System.out.println(dictionary.remove(word)!=null ? "Слово "+word+" удалено." : word+"нет в словаре");
+        //System.out.println(dictionary.remove(word)!=null ? "Слово "+word+" удалено." : word+"нет в словаре");
+        return dictionary.remove(word)!=null;
     }
-    public void replaceWord(String oldWord,String newWord){
+    public boolean replaceWord(String oldWord,String newWord){
         ValidationUtils.checkNullOrEmpty(oldWord,"Слово не может быть пустым или null");
         ValidationUtils.checkNullOrEmpty(newWord,"Слово не может быть пустым или null");
         if(dictionary.containsKey(oldWord)){
             dictionary.put(newWord,dictionary.remove(oldWord));
             dictionary.get(newWord).setWord(newWord);
-            System.out.printf("Произведена замена слова %s на слово %s\n",oldWord,newWord);
-        }else System.out.println(oldWord+" нет в словаре.");
+            return true;
+        }
+        return false;
     }
     public boolean addTranslations(String word,String translations){
         ValidationUtils.checkNullOrEmpty(word,"Слово не может быть пустым или null");
@@ -96,7 +126,15 @@ public class Dictionary {
         }else System.out.println(dictionary.get(word).toString());
     }
     public void showTopWord(int limit,boolean mostPopular){
-       if(mostPopular) {
+       if(dictionary.isEmpty()){
+           System.out.println("Словарь пуст");
+           return;
+       }
+       if(dictionary.size()<limit){
+           System.out.println("Словарь содержит всего "+limit+" слов");
+           limit=dictionary.size();
+       }
+        if(mostPopular) {
            System.out.printf("Топ %s самых популярных слов:\n",limit);
            dictionary.values().stream()
                    .sorted((a, b) -> Integer.compare(b.getCount(), a.getCount()))
