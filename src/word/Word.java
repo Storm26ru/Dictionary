@@ -43,10 +43,12 @@ public class Word implements Serializable {
        ValidationUtils.checkNullOrEmpty(translations,"Перевод не может быть пустым или null");
        this.translations.addAll(Arrays.asList(convertToArray(translations)));
     }
-    public void removeTranslation(String translation){
+    public boolean removeTranslation(String translation){
         ValidationUtils.checkNullOrEmpty(translation,"Перевод не может быть пустым или null");
-        if(this.translations.remove(translation)) System.out.println("Перевод: "+translation+" удален.");
+        /*if(this.translations.remove(translation)) return true; //System.out.println("Перевод: "+translation+" удален.");
         else System.out.println("Данный перевод: "+translation+" не найден.");
+        return false;*/
+        return this.translations.remove(translation);
     }
     private void incrementCount(){
         count++;

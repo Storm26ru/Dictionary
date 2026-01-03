@@ -26,19 +26,21 @@ public class Dictionary {
     }
 
     private Map<String,Word> loadDictionaryFromFile(){
-        if(!new File(this.filename).exists()) return new HashMap<>();
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(this.filename))){
-            Object object = ois.readObject();
-            if(object instanceof Map) return (Map<String, Word>) object;
-            else System.out.println("Ошибка: содержимое файла не является ожидаемым типом данных. " +
-                                    "Загружается пустая коллекция.");
-        } catch (IOException e) {
-            System.out.println("Ошибка чтения файла: "+ e.getMessage());
-        }catch (ClassNotFoundException e){
-            System.out.println("Объект в файле не найден или его класс неизвестен: "+e.getMessage());
-        }catch (ClassCastException e){
-            System.out.println("Некорректный формат данных в файле: "+e.getMessage());
-        }
+        //if(!new File(this.filename).exists()) return new HashMap<>();
+        if(new File(this.filename).exists()) {
+            try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(this.filename))) {
+                Object object = ois.readObject();
+                if (object instanceof Map) return (Map<String, Word>) object;
+                else System.out.println("Ошибка: содержимое файла не является ожидаемым типом данных.");
+            } catch (IOException e) {
+                System.out.println("Ошибка чтения файла: " + e.getMessage());
+            } catch (ClassNotFoundException e) {
+                System.out.println("Объект в файле не найден или его класс неизвестен: " + e.getMessage());
+            } catch (ClassCastException e) {
+                System.out.println("Некорректный формат данных в файле: " + e.getMessage());
+            }
+        }else System.out.println("Файл \""+filename+"\" не найден");
+        System.out.println("Создан пустой словарь.");
         return new HashMap<>();
     }
     public boolean save(){
@@ -53,7 +55,7 @@ public class Dictionary {
         return saveToFile(filename);
     }
     private boolean saveToFile(String path){
-        try(ObjectOutputStream oop = new ObjectOutputStream(new FileOutputStream(path))){
+        try(ObjectOutputStream oop = new ObjectOutputStream(new FileOutputStream(path+".map"))){
             oop.writeObject(this.dictionary);
             setFilename(path+".map");
             return true;
@@ -95,30 +97,31 @@ public class Dictionary {
         }
         return false;
     }
-    public boolean removeTranslation(String word,String translation){
+    public int removeTranslation(String word,String translation){
         ValidationUtils.checkNullOrEmpty(word,"Слово не может быть пустым или null");
         ValidationUtils.checkNullOrEmpty(translation,"Перевод не может быть пустым или null");
         if(dictionary.containsKey(word)){
-            dictionary.get(word).removeTranslation(translation);
-            return true;
+            return dictionary.get(word).removeTranslation(translation) ?  1 :  0;
         }
-        return false;
+        return -1;
     }
-    public boolean replaceTranslation(String word,String oldTranslation,String newTranslation){
+    public int replaceTranslation(String word,String oldTranslation,String newTranslation){
         ValidationUtils.checkNullOrEmpty(word,"Слово не может быть пустым или null");
         ValidationUtils.checkNullOrEmpty(oldTranslation,"Перевод не может быть пустым или null");
         ValidationUtils.checkNullOrEmpty(newTranslation,"Перевод не может быть пустым или null");
         if(dictionary.containsKey(word)){
-            dictionary.get(word).removeTranslation(oldTranslation);
-            dictionary.get(word).addTranslations(newTranslation);
-            return true;
+            if(dictionary.get(word).removeTranslation(oldTranslation)) {
+                dictionary.get(word).addTranslations(newTranslation);
+                return 1;
+            }
+            return 0;
         }
-        return false;
+        return -1;
     }
     public void print(String word){
         ValidationUtils.checkNullOrEmpty(word,"Слово не может быть пустым или null");
         if(!dictionary.containsKey(word)){
-            System.out.printf("Слова %s нет в словаре.",word);
+            System.out.printf("Слова %s нет в словаре.\n",word);
             return;
         }
         if(dictionary.get(word).getTranslations().isEmpty()){
@@ -131,8 +134,8 @@ public class Dictionary {
            return;
        }
        if(dictionary.size()<limit){
-           System.out.println("Словарь содержит всего "+limit+" слов");
            limit=dictionary.size();
+           System.out.println("Словарь содержит всего "+limit+" слов");
        }
         if(mostPopular) {
            System.out.printf("Топ %s самых популярных слов:\n",limit);

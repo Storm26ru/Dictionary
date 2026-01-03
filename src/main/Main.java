@@ -42,8 +42,7 @@ public class Main {
                 12. Сохранить словарь
                 13. Сохранить как
                 14. Выход
-                Выберите пункт:
-                """;
+                Выберите пункт:""";
         System.out.println(MENU);
     }
     private static void loadCommands(Map<Integer,Runnable>commands,Scanner scanner){
@@ -114,9 +113,11 @@ public class Main {
                 String oldTranslation = scanner.nextLine();
                 System.out.println(("Введите перевод для замены:"));
                 String newTranslation = scanner.nextLine();
-                System.out.println(dictionary.replaceTranslation(word,oldTranslation,newTranslation)
-                                    ? "Перевод "+oldTranslation+" заменен на "+newTranslation
-                                    : word+" нет в словаре.");
+                switch (dictionary.replaceTranslation(word,oldTranslation,newTranslation)){
+                    case 1 -> System.out.println("Перевод \""+oldTranslation+"\" заменен на \""+newTranslation+"\"");
+                    case 0 -> System.out.println("Данный перевод \""+oldTranslation+"\" не найден");
+                    case -1 -> System.out.println("\""+word+"\" нет в словаре.");
+                }
             }
         });
         commands.put(9,()->{
@@ -126,9 +127,11 @@ public class Main {
                 String word = scanner.nextLine();
                 System.out.println("Введите перевод коротый необходимо удалить:");
                 String translation = scanner.nextLine();
-                System.out.println(dictionary.removeTranslation(word,translation)
-                        ? "Перевод "+translation+" удален."
-                        : word+" нет в словаре.");
+                switch (dictionary.removeTranslation(word,translation)){
+                    case 1 -> System.out.println("Перевод \""+translation+"\" удален.");
+                    case 0 -> System.out.println("Данный перевод \""+translation+"\" не найден");
+                    case -1 -> System.out.println("\""+word+"\" нет в словаре.");
+                }
             }
         });
         commands.put(10,()->{
